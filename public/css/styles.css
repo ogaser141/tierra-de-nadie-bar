@@ -1,0 +1,181 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  color: #333;
+}
+
+header {
+  background: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 20px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+header p {
+  margin: 5px 0 0;
+  color: #666;
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+}
+
+h2 {
+  margin-top: 0;
+  color: #34495e;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #3498db;
+  border: none;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+button:hover {
+  background: #2980b9;
+}
+
+button.danger {
+  background: #e74c3c;
+}
+
+button.danger:hover {
+  background: #c0392b;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+form {
+  max-width: 400px;
+  margin: auto;
+}
+
+/* ===============================
+   DISEÑO RESPONSIVE - CELULARES
+   =============================== */
+
+/* Ajustes generales */
+@media (max-width: 768px) {
+
+  body {
+    font-size: 16px;
+    padding: 8px;
+  }
+
+  header {
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  /* Inputs y selects */
+  input,
+  select,
+  textarea {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Botones grandes para dedo */
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+  }
+
+  /* Contenedores */
+  .container,
+  .card {
+    padding: 12px;
+  }
+
+  /* TABLAS */
+  table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  thead {
+    display: none;
+    /* Oculta encabezado en móvil */
+  }
+
+  tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px;
+  }
+
+  td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+    border: none;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-weight: bold;
+  }
+}
+
+button.danger {
+  background-color: #c62828;
+  color: white;
+}
+
+button.danger:hover {
+  background-color: #b71c1c;
+}

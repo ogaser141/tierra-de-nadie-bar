@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Detalle de Solicitud</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+    <header>
+        <h1>Tierra de Nadie</h1>
+        <p>Detalle de solicitud</p>
+    </header>
+
+    <div class="container card" id="detalle"></div>
+
+    <div class="container card" style="text-align:center">
+        <button onclick="aprobar()">Aprobar</button>
+        <button class="danger" onclick="cancelar()">Cancelar</button>
+        <button id="cerrarBtn">Cerrar</button>
+    </div>
+
+    <script>
+        const id = new URLSearchParams(window.location.search).get('id');
+
+        // Cargar datos de la solicitud
+        fetch('/solicitudes/' + id)
+            .then(r => r.json())
+            .then(s => {
+                detalle.innerHTML = `
+      <p><b>ID:</b> ${s.id}</p>
+      <p><b>Orden:</b> ${s.nombre_orden}</p>
+      <p><b>Usuario:</b> ${s.usuario}</p>
+      <p><b>Detalle:</b> ${s.detalle}</p>
+      <p><b>Estado:</b> ${s.estado}</p>
+    `;
+            });
+
+        // Aprobar solicitud
+        function aprobar() {
+            fetch('/solicitudes/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 'APROBADA' })
+            }).then(() => {
+                alert('Atendido');
+                window.close();
+            });
+        }
+
+        // Cancelar solicitud
+        function cancelar() {
+
+
+            const confirmar = confirm('¿Está seguro que desea cancelar?');
+            if (!confirmar) return; // usuario canceló
+
+
+            fetch('/solicitudes/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 'CANCELADA' })
+            }).then(() => {
+                window.close();
+            });
+        }
+
+        document.getElementById('cerrarBtn').addEventListener('click', function () {
+            window.close(); // Cierra la ventana actual
+        });
+    </script>
+
+</body>
+
+</html>

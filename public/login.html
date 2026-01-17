@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tierra de Nadie - Login</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<header>
+  <h1>Tierra de Nadie</h1>
+  <p>Bar de Rock</p>
+</header>
+
+<div class="container card">
+  <h2>Ingreso al sistema</h2>
+
+  <input id="usuario" placeholder="Usuario">
+  <input id="password" type="password" placeholder="Contraseña">
+
+  <button onclick="login()">Ingresar</button>
+
+  <p id="msg"></p>
+</div>
+
+<script>
+function login() {
+  fetch('/login', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      usuario: usuario.value,
+      password: password.value
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.ok) {
+      msg.innerText = "Credenciales incorrectas";
+      return;
+    }
+
+    localStorage.setItem('usuario', data.usuario);
+    localStorage.setItem('rol', data.rol);
+
+    if (data.rol === 'admin') {
+      location.href = 'admin.html';
+    } else if (data.rol === 'receptor') {
+      location.href = 'receptor.html';
+    } else {
+      location.href = 'usuario.html';
+    }
+    
+  });
+}
+</script>
+
+</body>
+</html>

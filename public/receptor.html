@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Receptor de Solicitudes - Tierra de Nadie</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+    <header>
+        <h1>Tierra de Nadie</h1>
+        <p>Recepción de solicitudes</p>
+        <button onclick="cerrarSesion()">Cerrar sesión</button>
+    </header>
+
+    <div class="container card">
+        <h2>Solicitudes pendientes</h2>
+        <button id="btnBorrarSolicitudes" class="danger">
+            Borrar todas las solicitudes
+        </button>
+        <button id="activarSonidoBtn">
+            🔔 Activar notificaciones de sonido
+        </button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Orden</th>
+                    <th>Usuario</th>
+                    <th>Detalle</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaSolicitudes"></tbody>
+        </table>
+    </div>
+
+    <script>
+
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
+
+        if (!usuario || !rol) {
+            window.location.replace('login.html');
+        }
+        function cargarSolicitudes() {
+            fetch('/solicitudes')
+                .then(r => r.json())
+                .then(data => {
+
+                    // Ordenar de más nuevos a más viejos por id descendente
+                    data.sort((a, b) => b.id - a.id);
+
+                    // 🔔 DETECTAR NUEVA SOLICITUD
+                    if (notificacionesActivas && data.length > 0) {
+                        const idMasReciente = data[0].id;
+
+                        if (ultimoId !== 0 && idMasReciente > ultimoId) {
+                            // 🔔 Sonido
+                            audio.play();
+
+                            // 📳 Vibración (si está disponible)
+                            if ('vibrate' in navigator) {
+                                navigator.vibrate(500);
+                            }
+                        }
+
+                        ultimoId = idMasReciente;
+                    }
+                    tablaSolicitudes.innerHTML = data.map(s => {
+
+                        // Color según estado
+                        let colorEstado = '';
+                        if (s.estado === 'APROBADA') colorEstado = 'green';
+                        else if (s.estado === 'CANCELADA') colorEstado = 'red';
+                        else colorEstado = 'lightgray';
+
+                        // Si la solicitud está APROBADA o CANCELADA, deshabilitamos el botón
+                        const botonVer = (s.estado === 'APROBADA' || s.estado === 'CANCELADA')
+                            ? `<button disabled>Ver</button>`
+                            : `<button onclick="verSolicitud(${s.id})">Ver</button>`;
+
+                        return `
+    <tr>
+      <td data-label="ID">${s.id}</td>
+      <td data-label="Orden">${s.nombre_orden}</td>
+      <td data-label="Usuario">${s.usuario}</td>
+      <td data-label="Detalle">${s.detalle}</td>
+      <td data-label="Estado" style="background-color: ${colorEstado}; color: white; text-align: center;">${s.estado}</td>
+      <td>${botonVer}</td>
+    </tr>
+  `;
+                    }).join('');
+                });
+        }
+
+        function cambiarEstado(id, nuevoEstado, estadoActual) {
+            if (estadoActual === 'APROBADA' || estadoActual === 'CANCELADA') {
+                alert('No se puede modificar esta solicitud porque ya está ' + estadoActual);
+                return;
+            }
+
+            if (nuevoEstado === 'CANCELADA') {
+                const confirmar = confirm('¿Está seguro que desea cancelar?');
+                if (!confirmar) return;
+            }
+
+            fetch('/solicitudes/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: nuevoEstado })
+            }).then(() => {
+                // tabla se actualizará automáticamente
+            });
+        }
+
+
+        function verSolicitud(id) {
+            window.open('solicitud.html?id=' + id, '_blank');
+        }
+
+        function cerrarSesion() {
+            // Borrar datos de sesión
+            localStorage.clear();
+
+            // Redirigir al login
+            window.location.replace('login.html');
+        }
+
+        document.getElementById('btnBorrarSolicitudes')
+            .addEventListener('click', () => {
+
+                const confirmar = confirm(
+                    '¿Está seguro que desea borrar TODAS las solicitudes?\nEsta acción NO se puede deshacer.'
+                );
+
+                if (!confirmar) return;
+
+                fetch('/solicitudes', { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(`Solicitudes borradas: ${data.eliminadas}`);
+                        location.reload();
+                    })
+                    .catch(() => {
+                        alert('Error al borrar las solicitudes');
+                    });
+            });
+
+        let ultimoId = 0;
+        let sonidoActivado = false;
+
+        const audio = new Audio('sounds/notificacion.mp3');
+
+        // Activar sonido (requerido por navegador)
+        document.getElementById('activarSonidoBtn')
+            .addEventListener('click', () => {
+
+                notificacionesActivas = true;
+
+                // 🔓 Desbloquea audio (requerido por navegador)
+                audio.play().then(() => audio.pause());
+
+                alert('Notificaciones activadas (sonido y vibración)');
+            });
+
+
+        // Cargar al iniciar
+        cargarSolicitudes();
+
+        setInterval(() => {
+            cargarSolicitudes();
+        }, 2000);
+
+    </script>
+
+</body>
+
+</html>

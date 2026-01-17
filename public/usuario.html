@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Nueva Solicitud</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+  <header>
+    <h1>Tierra de Nadie</h1>
+    <p>Orden de compra</p>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+  </header>
+
+  <div class="container card">
+    <h2>Nueva solicitud</h2>
+
+    <p><b>Usuario:</b> <span id="usuarioLabel"></span></p>
+
+    <input id="nombreOrden" placeholder="Nombre de la orden (Ej: Mesa 4)">
+
+    <div class="producto-box">
+      <select id="productoSelect"></select>
+      <input type="number" id="cantidad" min="1" value="1">
+      <button onclick="agregar()">Agregar</button>
+    </div>
+
+    <ul id="lista"></ul>
+
+    <button onclick="enviar()">Enviar solicitud</button>
+  </div>
+
+  <script>
+
+    const usuario = localStorage.getItem('usuario');
+    usuarioLabel.innerText = usuario;
+    const rol = localStorage.getItem('rol');
+
+    if (!usuario || !rol) {
+      window.location.replace('login.html');
+    }
+
+    let productosSeleccionados = [];
+
+    // Cargar productos en el select
+    fetch('/productos')
+      .then(r => r.json())
+      .then(data => {
+        productoSelect.innerHTML = data.map(p =>
+          `<option value="${p.nombre}">${p.nombre} ($${p.precio})</option>`
+        ).join('');
+      });
+
+    function agregar() {
+      const producto = productoSelect.value;
+      const cant = cantidad.value;
+
+      productosSeleccionados.push(`${producto} x${cant}`);
+      lista.innerHTML = productosSeleccionados.map(p => `<li>${p}</li>`).join('');
+    }
+
+    function enviar() {
+      fetch('/solicitudes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre_orden: nombreOrden.value,
+          detalle: productosSeleccionados.join(', '),
+          usuario: usuario
+        })
+      }).then(() => {
+        alert('Solicitud enviada');
+        productosSeleccionados = [];
+        lista.innerHTML = '';
+      });
+    }
+
+    function cerrarSesion() {
+      // Borrar datos de sesión
+      localStorage.clear();
+
+      // Redirigir al login
+      window.location.replace('login.html');
+    }
+
+
+  </script>
+
+</body>
+
+</html>

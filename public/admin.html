@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Administrador - Tierra de Nadie</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+  <header>
+    <h1>Tierra de Nadie</h1>
+    <p>Panel de Administración</p>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+  </header>
+
+  <div class="container">
+
+    <!-- ===== USUARIOS ===== -->
+    <div class="card">
+      <h2>Usuarios</h2>
+
+      <input id="nuevoUsuario" placeholder="Usuario">
+      <input id="nuevoPassword" placeholder="Contraseña">
+      <select id="nuevoRol">
+        <option value="usuario">Usuario</option>
+        <option value="admin">Administrador</option>
+        <option value="receptor">Receptor</option>
+      </select>
+      <button onclick="crearUsuario()">Crear usuario</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaUsuarios"></tbody>
+      </table>
+    </div>
+
+    <!-- ===== PRODUCTOS ===== -->
+    <div class="card">
+      <h2>Productos</h2>
+
+      <input id="nuevoProducto" placeholder="Nombre del producto">
+      <input id="nuevoPrecio" type="number" placeholder="Precio">
+      <button onclick="crearProducto()">Crear producto</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaProductos"></tbody>
+      </table>
+    </div>
+
+    <!-- ===== SOLICITUDES ===== -->
+    <div class="card">
+      <h2>Solicitudes</h2>
+      <button id="btnBorrarSolicitudes" class="danger">
+        Borrar todas las solicitudes
+      </button>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Orden</th>
+            <th>Usuario</th>
+            <th>Detalle</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaSolicitudes"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+
+    const usuario = localStorage.getItem('usuario');
+    const rol = localStorage.getItem('rol');
+
+    if (!usuario || !rol) {
+      window.location.replace('login.html');
+    }
+
+    // ================= USUARIOS =================
+    function cargarUsuarios() {
+      fetch('/usuarios')
+        .then(r => r.json())
+        .then(data => {
+          tablaUsuarios.innerHTML = data.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td>
+            <input value="${u.usuario}" onchange="editarUsuario(${u.id}, this.value, '${u.rol}')">
+          </td>
+          <td>
+            <select onchange="editarUsuario(${u.id}, '${u.usuario}', this.value)">
+              <option ${u.rol === 'usuario' ? 'selected' : ''}>usuario</option>
+              <option ${u.rol === 'admin' ? 'selected' : ''}>admin</option>
+            </select>
+          </td>
+          <td>
+            <button class="danger" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+        });
+    }
+
+    function crearUsuario() {
+      fetch('/usuarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          usuario: nuevoUsuario.value,
+          password: nuevoPassword.value,
+          rol: nuevoRol.value
+        })
+      }).then(() => {
+        nuevoUsuario.value = '';
+        nuevoPassword.value = '';
+        cargarUsuarios();
+      });
+    }
+
+    function editarUsuario(id, usuario, rol) {
+      fetch('/usuarios/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, rol })
+      });
+    }
+
+    function eliminarUsuario(id) {
+      if (!confirm('¿Eliminar usuario?')) return;
+      fetch('/usuarios/' + id, { method: 'DELETE' })
+        .then(() => cargarUsuarios());
+    }
+
+    // ================= PRODUCTOS =================
+    function cargarProductos() {
+      fetch('/productos')
+        .then(r => r.json())
+        .then(data => {
+          tablaProductos.innerHTML = data.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>
+            <input value="${p.nombre}" onchange="editarProducto(${p.id}, this.value, ${p.precio})">
+          </td>
+          <td>
+            <input type="number" value="${p.precio}" onchange="editarProducto(${p.id}, '${p.nombre}', this.value)">
+          </td>
+          <td>
+            <button class="danger" onclick="eliminarProducto(${p.id})">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+        });
+    }
+
+    function crearProducto() {
+      fetch('/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: nuevoProducto.value,
+          precio: nuevoPrecio.value
+        })
+      }).then(() => {
+        nuevoProducto.value = '';
+        nuevoPrecio.value = '';
+        cargarProductos();
+      });
+    }
+
+    function editarProducto(id, nombre, precio) {
+      fetch('/productos/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, precio })
+      });
+    }
+
+    function eliminarProducto(id) {
+      if (!confirm('¿Eliminar producto?')) return;
+      fetch('/productos/' + id, { method: 'DELETE' })
+        .then(() => cargarProductos());
+    }
+
+    // ================= SOLICITUDES =================
+    function cargarSolicitudes() {
+      fetch('/solicitudes')
+        .then(r => r.json())
+        .then(data => {
+          data.sort((a, b) => b.id - a.id);
+          tablaSolicitudes.innerHTML = data.map(s => {
+
+            let colorEstado = '';
+            if (s.estado === 'APROBADA') colorEstado = 'green';
+            else if (s.estado === 'CANCELADA') colorEstado = 'red';
+            else colorEstado = 'lightgray'; // para pendientes
+
+            return `
+            
+        <tr>
+          <td data-label="ID">${s.id}</td>
+          <td data-label="Orden">${s.nombre_orden}</td>
+          <td data-label="Usuario">${s.usuario}</td>
+          <td data-label="Detalle">${s.detalle}</td>
+          <td data-label="Estado" style="background-color: ${colorEstado}; color: white; text-align: center;">${s.estado}</td>
+          <td>
+            <button onclick="cambiarEstado(${s.id}, 'APROBADA', '${s.estado}')">Aprobar</button>
+            <button class="danger" onclick="cambiarEstado(${s.id}, 'CANCELADA', '${s.estado}')">Cancelar</button>
+          </td>
+        </tr>
+      `;
+          }).join('');
+        });
+    }
+
+    function cambiarEstado(id, nuevoEstado, estadoActual) {
+      // Validación: no se puede cambiar si ya está APROBADA o CANCELADA
+      if (estadoActual === 'APROBADA' || estadoActual === 'CANCELADA') {
+        alert('No se puede modificar esta solicitud porque ya está ' + estadoActual);
+        return;
+      }
+
+      if (nuevoEstado === 'CANCELADA') {
+        const confirmar = confirm('¿Está seguro que desea cancelar?');
+        if (!confirmar) return;
+      }
+
+      fetch('/solicitudes/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: nuevoEstado })
+      }).then(() => {
+        // tabla se actualizará automáticamente
+      });
+    }
+
+    function cerrarSesion() {
+      // Borrar datos de sesión
+      localStorage.clear();
+
+      // Redirigir al login
+      window.location.replace('login.html');
+    }
+
+    document.getElementById('btnBorrarSolicitudes')
+      .addEventListener('click', () => {
+
+        const confirmar = confirm(
+          '¿Está seguro que desea borrar TODAS las solicitudes?\nEsta acción NO se puede deshacer.'
+        );
+
+        if (!confirmar) return;
+
+        fetch('/solicitudes', { method: 'DELETE' })
+          .then(res => res.json())
+          .then(data => {
+            alert(`Solicitudes borradas: ${data.eliminadas}`);
+            location.reload();
+          })
+          .catch(() => {
+            alert('Error al borrar las solicitudes');
+          });
+      });
+
+
+
+    // Cargar todo al iniciar
+    cargarUsuarios();
+    cargarProductos();
+    cargarSolicitudes();
+
+    setInterval(() => {
+      cargarUsuarios();
+      cargarProductos();
+      cargarSolicitudes();
+    }, 2000);
+  </script>
+
+</body>
+
+</html>
