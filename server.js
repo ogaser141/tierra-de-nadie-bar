@@ -159,6 +159,7 @@ app.put('/solicitudes/:id', (req, res) => {
 // 🔥 BORRAR TODAS LAS SOLICITUDES DE LA BASE DE DATOS
 app.delete('/solicitudes', (req, res) => {
 
+  console.log('🔥 DELETE /solicitudes ejecutado');
   db.run("DELETE FROM solicitudes", function (err) {
     if (err) {
       return res.status(500).json({
