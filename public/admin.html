@@ -288,15 +288,20 @@
       cargarSolicitudes();
     });
 
+    socket.on('estado_actualizado', () => {
+      cargarSolicitudes();
+    });
+
+
     // Cargar todo al iniciar
     cargarUsuarios();
     cargarProductos();
     cargarSolicitudes();
 
     //setInterval(() => {
-      //cargarUsuarios();
-      //cargarProductos();
-      //cargarSolicitudes();
+    //cargarUsuarios();
+    //cargarProductos();
+    //cargarSolicitudes();
     //}, 2000);
   </script>
 

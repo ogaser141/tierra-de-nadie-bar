@@ -43,7 +43,7 @@ app.post('/login', (req, res) => {
     "SELECT * FROM usuarios WHERE usuario=? AND password=?",
     [usuario, password],
     (err, row) => {
-      row ? res.json({ ok:true, usuario:row.usuario, rol:row.rol }) : res.json({ ok:false });
+      row ? res.json({ ok: true, usuario: row.usuario, rol: row.rol }) : res.json({ ok: false });
     }
   );
 });
@@ -57,16 +57,16 @@ app.get('/usuarios', (req, res) => {
 
 app.post('/usuarios', (req, res) => {
   const { usuario, password, rol } = req.body;
-  db.run("INSERT INTO usuarios VALUES (null,?,?,?)", [usuario,password,rol], () => res.json({ok:true}));
+  db.run("INSERT INTO usuarios VALUES (null,?,?,?)", [usuario, password, rol], () => res.json({ ok: true }));
 });
 
 app.put('/usuarios/:id', (req, res) => {
   const { usuario, rol } = req.body;
-  db.run("UPDATE usuarios SET usuario=?, rol=? WHERE id=?", [usuario,rol,req.params.id], () => res.json({ok:true}));
+  db.run("UPDATE usuarios SET usuario=?, rol=? WHERE id=?", [usuario, rol, req.params.id], () => res.json({ ok: true }));
 });
 
 app.delete('/usuarios/:id', (req, res) => {
-  db.run("DELETE FROM usuarios WHERE id=?", [req.params.id], () => res.json({ok:true}));
+  db.run("DELETE FROM usuarios WHERE id=?", [req.params.id], () => res.json({ ok: true }));
 });
 
 //
@@ -78,16 +78,16 @@ app.get('/productos', (req, res) => {
 
 app.post('/productos', (req, res) => {
   const { nombre, precio } = req.body;
-  db.run("INSERT INTO productos VALUES (null,?,?)", [nombre,precio], () => res.json({ok:true}));
+  db.run("INSERT INTO productos VALUES (null,?,?)", [nombre, precio], () => res.json({ ok: true }));
 });
 
 app.put('/productos/:id', (req, res) => {
   const { nombre, precio } = req.body;
-  db.run("UPDATE productos SET nombre=?, precio=? WHERE id=?", [nombre,precio,req.params.id], () => res.json({ok:true}));
+  db.run("UPDATE productos SET nombre=?, precio=? WHERE id=?", [nombre, precio, req.params.id], () => res.json({ ok: true }));
 });
 
 app.delete('/productos/:id', (req, res) => {
-  db.run("DELETE FROM productos WHERE id=?", [req.params.id], () => res.json({ok:true}));
+  db.run("DELETE FROM productos WHERE id=?", [req.params.id], () => res.json({ ok: true }));
 });
 
 //
@@ -136,8 +136,25 @@ app.get('/solicitudes', (req, res) => {
 });
 
 app.put('/solicitudes/:id', (req, res) => {
-  db.run("UPDATE solicitudes SET estado=? WHERE id=?", [req.body.estado, req.params.id], () => res.json({ok:true}));
+  const { estado } = req.body;
+  const { id } = req.params;
+
+  db.run(
+    "UPDATE solicitudes SET estado=? WHERE id=?",
+    [estado, id],
+    function () {
+
+      // 🔔 Notificar cambio de estado
+      io.emit('estado_actualizado', {
+        id,
+        estado
+      });
+
+      res.json({ ok: true });
+    }
+  );
 });
+
 
 // 🔥 BORRAR TODAS LAS SOLICITUDES DE LA BASE DE DATOS
 app.delete('/solicitudes', (req, res) => {

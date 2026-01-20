@@ -184,12 +184,16 @@
             }
         });
 
+        socket.on('estado_actualizado', data => {
+            cargarSolicitudes();
+        });
+
 
         // Cargar al iniciar
         cargarSolicitudes();
 
         //setInterval(() => {
-          //  cargarSolicitudes();
+        //  cargarSolicitudes();
         //}, 2000);
 
     </script>
