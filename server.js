@@ -159,20 +159,37 @@ app.put('/solicitudes/:id', (req, res) => {
 // 🔥 BORRAR TODAS LAS SOLICITUDES DE LA BASE DE DATOS
 app.delete('/solicitudes', (req, res) => {
 
-  const sql = 'DELETE FROM solicitudes';
-
-  db.run(sql, function (err) {
+  db.run("DELETE FROM solicitudes", function (err) {
     if (err) {
-      console.error(err);
-      return res.status(500).json({ ok: false });
+      return res.status(500).json({
+        ok: false,
+        message: 'Error al borrar las solicitudes'
+      });
     }
 
-    res.json({
-      ok: true,
-      eliminadas: this.changes // cantidad de filas borradas
-    });
+    db.run(
+      "DELETE FROM sqlite_sequence WHERE name = 'solicitudes'",
+      function (err) {
+        if (err) {
+          return res.status(500).json({
+            ok: false,
+            message: 'Error al reiniciar el ID'
+          });
+        }
+
+        // ✅ SOLO AQUÍ notificamos
+        io.emit('solicitudes_borradas');
+
+        res.json({
+          ok: true,
+          message: 'Todas las solicitudes fueron eliminadas correctamente'
+        });
+      }
+    );
   });
 });
+
+
 
 
 //app.listen(3000, () => console.log("Servidor activo en http://localhost:3000"));
