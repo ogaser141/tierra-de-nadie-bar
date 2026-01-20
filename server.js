@@ -105,13 +105,23 @@ app.post('/solicitudes', (req, res) => {
     [nombre_orden, detalle, usuario],
     function (err) {
       if (err) {
-        console.error(err);
         return res.status(500).json({ error: 'Error DB' });
       }
+
+      // 🔔 EMITIR EVENTO EN TIEMPO REAL
+      io.emit('nueva_solicitud', {
+        id: this.lastID,
+        nombre_orden,
+        detalle,
+        usuario,
+        estado: 'PENDIENTE'
+      });
+
       res.json({ ok: true, id: this.lastID });
     }
   );
 });
+
 
 app.get('/solicitudes/:id', (req, res) => {
   db.get(
@@ -151,6 +161,16 @@ app.delete('/solicitudes', (req, res) => {
 //app.listen(3000, () => console.log("Servidor activo en http://localhost:3000"));
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+const http = require('http');
+const { Server } = require('socket.io');
+
+const server = http.createServer(app);
+const io = new Server(server);
+
+io.on('connection', socket => {
+  console.log('Cliente conectado:', socket.id);
+});
+
+server.listen(PORT, () => {
   console.log('Servidor corriendo en puerto', PORT);
 });

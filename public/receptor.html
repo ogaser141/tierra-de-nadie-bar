@@ -37,7 +37,7 @@
             <tbody id="tablaSolicitudes"></tbody>
         </table>
     </div>
-
+    <script src="/socket.io/socket.io.js"></script>
     <script>
 
         const usuario = localStorage.getItem('usuario');
@@ -151,7 +151,7 @@
             });
 
         let ultimoId = 0;
-        let sonidoActivado = false;
+        let notificacionesActivas = false;
 
         const audio = new Audio('sounds/notificacion.mp3');
 
@@ -167,13 +167,30 @@
                 alert('Notificaciones activadas (sonido y vibración)');
             });
 
+        const socket = io();
+
+        socket.on('nueva_solicitud', solicitud => {
+
+            // 🔄 Refrescar tabla
+            cargarSolicitudes();
+
+            // 🔔 Sonido si está activado
+            if (notificacionesActivas) {
+                audio.play();
+
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(500);
+                }
+            }
+        });
+
 
         // Cargar al iniciar
         cargarSolicitudes();
 
-        setInterval(() => {
-            cargarSolicitudes();
-        }, 2000);
+        //setInterval(() => {
+          //  cargarSolicitudes();
+        //}, 2000);
 
     </script>
 

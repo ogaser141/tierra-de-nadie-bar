@@ -86,7 +86,7 @@
     </div>
 
   </div>
-
+  <script src="/socket.io/socket.io.js"></script>
   <script>
 
     const usuario = localStorage.getItem('usuario');
@@ -282,18 +282,22 @@
           });
       });
 
+    const socket = io();
 
+    socket.on('nueva_solicitud', () => {
+      cargarSolicitudes();
+    });
 
     // Cargar todo al iniciar
     cargarUsuarios();
     cargarProductos();
     cargarSolicitudes();
 
-    setInterval(() => {
-      cargarUsuarios();
-      cargarProductos();
-      cargarSolicitudes();
-    }, 2000);
+    //setInterval(() => {
+      //cargarUsuarios();
+      //cargarProductos();
+      //cargarSolicitudes();
+    //}, 2000);
   </script>
 
 </body>
